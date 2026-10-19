@@ -9,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Hide Streamlit's default header, footer, and padding for a pure website look
+# 2. Hide Streamlit's default UI for a pure full-screen website
 st.markdown("""
     <style>
         #MainMenu {visibility: hidden;}
@@ -29,7 +29,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Complete Patil Infra Website (HTML + Tailwind + React) embedded inside Streamlit
+# 3. Complete Patil Infra Website with Direct Top Owner Unlocker & Saved Uploads
 website_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -68,28 +68,95 @@ website_html = """
             <span class="font-extrabold text-lg tracking-wider text-white">PATIL <span class="text-amber-400">INFRA</span></span>
             <span class="text-[10px] bg-sky-900/80 text-sky-300 border border-sky-700 px-2 py-0.5 rounded font-semibold">DHARASHIV</span>
           </div>
-          <p id="nav-sub" class="text-[11px] text-slate-400">Architectural 2D/3D Planning, BIM & Cost Estimation</p>
+          <p class="text-[11px] text-slate-400">Architectural 2D/3D Planning, BIM & Cost Estimation</p>
         </div>
       </div>
 
-      <!-- RIGHT CONTROLS: SMALL MARATHI TOGGLE & OWNER LOCK -->
+      <!-- RIGHT CONTROLS: SMALL MARATHI TOGGLE & WORKING OWNER LOCK BUTTON -->
       <div class="flex items-center gap-2">
         <div class="bg-slate-800 p-0.5 rounded-lg border border-slate-700 flex text-xs font-bold">
-          <button onclick="setLang('en')" id="btn-en" class="px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 transition">EN</button>
-          <button onclick="setLang('mr')" id="btn-mr" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition">मराठी</button>
+          <button type="button" onclick="setLang('en')" id="btn-en" class="px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 transition">EN</button>
+          <button type="button" onclick="setLang('mr')" id="btn-mr" class="px-2.5 py-1 rounded-md text-slate-300 hover:text-white transition">मराठी</button>
         </div>
-        <button onclick="toggleOwnerModal()" title="Owner Login (PIN: 2026)" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs">
-          🔒
+        <button type="button" onclick="togglePinBar()" id="lockBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-amber-400 border border-amber-500/40 text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+          🔒 <span class="hidden sm:inline">Owner</span>
         </button>
       </div>
     </div>
+
+    <!-- INLINE OWNER PIN BAR (OPENS DIRECTLY BELOW NAVBAR WHEN LOCK IS CLICKED) -->
+    <div id="pinBar" style="display: none;" class="bg-slate-900 border-t border-amber-500/40 px-4 py-3">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs text-amber-300 font-semibold">
+          <span>🔑 Owner Admin Login — Enter PIN (Default: <b>2026</b>)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="pinInput" type="password" placeholder="Enter PIN (2026)" onkeydown="if(event.key==='Enter') verifyPin()" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-white text-xs font-bold w-36 focus:outline-none focus:border-amber-400"/>
+          <button type="button" onclick="verifyPin()" class="gold-gradient text-slate-950 font-extrabold px-4 py-1.5 rounded-lg text-xs cursor-pointer">
+            Unlock Studio 🔓
+          </button>
+          <button type="button" onclick="togglePinBar()" class="bg-slate-800 text-slate-300 px-2.5 py-1.5 rounded-lg text-xs">
+            ✕
+          </button>
+        </div>
+      </div>
+      <p id="pinError" style="display: none;" class="text-red-400 text-xs font-bold mt-1 text-right max-w-7xl mx-auto">❌ चुकीचा पिन! कृपया 2026 हा पिन टाका.</p>
+    </div>
   </nav>
+
+  <!-- OWNER PRIVATE UPLOAD STUDIO (OPENS IMMEDIATELY AFTER PIN 2026) -->
+  <section id="ownerPanel" style="display: none;" class="bg-amber-50/90 border-b-2 border-amber-400 py-6 px-4 shadow-inner">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div>
+          <span class="text-xs font-extrabold uppercase bg-amber-500 text-slate-950 px-2.5 py-1 rounded">🔓 Owner Studio Active (Patil Infra Admin)</span>
+          <h3 class="text-lg font-extrabold text-slate-900 mt-1">Upload Your New 2D/3D Plans & Estimates</h3>
+          <p class="text-xs text-slate-600">इथून अपलोड केलेले प्लॅन्स खाली Portfolio मध्ये दिसतील. (फक्त तुलाच हा बॉक्स दिसतो)</p>
+        </div>
+        <button type="button" onclick="lockOwner()" class="text-xs bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold cursor-pointer">
+          Lock Studio 🔒
+        </button>
+      </div>
+
+      <div class="grid sm:grid-cols-4 gap-3 bg-white p-4 rounded-2xl border border-amber-300 shadow-sm">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Project Title *</label>
+          <input id="upTitle" type="text" placeholder="e.g. 30x40 East Facing 2BHK" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"/>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Category</label>
+          <select id="upType" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-semibold">
+            <option value="2D AutoCAD Plan">2D AutoCAD Plan</option>
+            <option value="3D Revit / SketchUp">3D Revit / SketchUp</option>
+            <option value="BOQ & Cost Estimate">BOQ & Cost Estimate</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Plan Details & Estimate</label>
+          <input id="upSpecs" type="text" placeholder="e.g. 1200 Sq.Ft • ₹19.5L BOQ" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm"/>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Select Plan Photo/Image</label>
+          <input id="upFile" type="file" accept="image/*" class="w-full text-xs bg-slate-50 p-1.5 rounded-xl border border-slate-300"/>
+        </div>
+      </div>
+
+      <div class="mt-3 flex items-center gap-3">
+        <button type="button" onclick="addOwnerProject()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 font-extrabold px-6 py-2.5 rounded-xl text-xs shadow cursor-pointer">
+          ➕ Upload & Publish to Website
+        </button>
+        <span id="uploadSuccess" style="display: none;" class="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-lg">
+          ✅ तुझा प्लॅन पोर्टफोलिओमध्ये यशस्वीरित्या जोडला गेला आहे!
+        </span>
+      </div>
+    </div>
+  </section>
 
   <!-- HERO SECTION -->
   <section class="bg-[#0f172a] text-white py-14 px-4 border-b border-slate-800">
     <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
       <div>
-        <span class="inline-block text-xs font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full mb-4" id="hero-badge">
+        <span class="inline-block text-xs font-bold uppercase tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full mb-4">
           Pure Design & Estimation Studio • Dharashiv
         </span>
         <h1 id="hero-title" class="text-3xl sm:text-5xl font-extrabold leading-tight mb-4">
@@ -112,23 +179,23 @@ website_html = """
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl">
           <div class="text-amber-400 text-xl mb-1">📐</div>
-          <h3 class="font-bold text-sm mb-1" id="srv1-t">2D AutoCAD Planning</h3>
-          <p class="text-xs text-slate-400" id="srv1-d">Vastu-compliant floor plans, column layout & municipal blueprints.</p>
+          <h3 class="font-bold text-sm mb-1">2D AutoCAD Planning</h3>
+          <p class="text-xs text-slate-400">Vastu-compliant floor plans, column layout & municipal blueprints.</p>
         </div>
         <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl">
           <div class="text-sky-400 text-xl mb-1">🏠</div>
-          <h3 class="font-bold text-sm mb-1" id="srv2-t">3D Elevation & Revit BIM</h3>
-          <p class="text-xs text-slate-400" id="srv2-d">Realistic 3D exterior views, wall schedules & walkthrough models.</p>
+          <h3 class="font-bold text-sm mb-1">3D Elevation & Revit BIM</h3>
+          <p class="text-xs text-slate-400">Realistic 3D exterior views, wall schedules & walkthrough models.</p>
         </div>
         <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl">
           <div class="text-emerald-400 text-xl mb-1">📊</div>
-          <h3 class="font-bold text-sm mb-1" id="srv3-t">Detailed Cost Estimation</h3>
-          <p class="text-xs text-slate-400" id="srv3-d">Exact RCC & Brickwork Rate Analysis, Material BOQ & Abstract sheets.</p>
+          <h3 class="font-bold text-sm mb-1">Detailed Cost Estimation</h3>
+          <p class="text-xs text-slate-400">Exact RCC & Brickwork Rate Analysis, Material BOQ & Abstract sheets.</p>
         </div>
         <div class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl">
           <div class="text-purple-400 text-xl mb-1">🏦</div>
-          <h3 class="font-bold text-sm mb-1" id="srv4-t">Bank Loan Valuation</h3>
-          <p class="text-xs text-slate-400" id="srv4-d">Standardized engineer estimate sheets ready for home loan approval.</p>
+          <h3 class="font-bold text-sm mb-1">Bank Loan Valuation</h3>
+          <p class="text-xs text-slate-400">Standardized engineer estimate sheets ready for home loan approval.</p>
         </div>
       </div>
     </div>
@@ -148,7 +215,6 @@ website_html = """
       </div>
 
       <div class="grid lg:grid-cols-12 gap-8 mt-6">
-        <!-- INPUTS -->
         <div class="lg:col-span-6 space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -186,12 +252,11 @@ website_html = """
             <input type="text" id="clientPhone" placeholder="WhatsApp Number" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"/>
           </div>
 
-          <button onclick="sendWhatsAppQuote()" class="w-full gold-gradient text-slate-950 font-extrabold py-3 rounded-xl text-sm shadow-md hover:opacity-95 transition">
+          <button type="button" onclick="sendWhatsAppQuote()" class="w-full gold-gradient text-slate-950 font-extrabold py-3 rounded-xl text-sm shadow-md hover:opacity-95 transition cursor-pointer">
             📲 Get Official Quotation & Send to WhatsApp
           </button>
         </div>
 
-        <!-- OUTPUT SLIP -->
         <div class="lg:col-span-6 bg-slate-900 text-white rounded-2xl p-6 flex flex-col justify-between border border-slate-800">
           <div>
             <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
@@ -235,36 +300,10 @@ website_html = """
 
           <div class="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
             <span>📍 Patil Infra Consultancy, Dharashiv</span>
-            <button onclick="window.print()" class="text-amber-400 hover:underline font-semibold">🖨️ Print Slip</button>
+            <button type="button" onclick="window.print()" class="text-amber-400 hover:underline font-semibold">🖨️ Print Slip</button>
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- OWNER PRIVATE UPLOAD STUDIO (HIDDEN BY DEFAULT, UNLOCKS WITH PIN 2026) -->
-  <section id="ownerPanel" class="hidden py-6 px-4 max-w-7xl mx-auto">
-    <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-6">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <span class="text-xs font-extrabold uppercase bg-amber-500 text-slate-950 px-2.5 py-0.5 rounded">🔓 Owner Admin Mode Active</span>
-          <h3 class="text-lg font-extrabold text-slate-900 mt-1">Upload Your 2D/3D Plans & Estimates (Only Visible to You)</h3>
-        </div>
-        <button onclick="lockOwner()" class="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold">Lock Panel 🔒</button>
-      </div>
-      <div class="grid sm:grid-cols-4 gap-3">
-        <input id="upTitle" type="text" placeholder="Project Title (e.g. 30x40 G+1 Plan)" class="px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"/>
-        <select id="upType" class="px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white font-semibold">
-          <option value="2D AutoCAD Plan">2D AutoCAD Plan</option>
-          <option value="3D Revit / SketchUp">3D Revit / SketchUp</option>
-          <option value="BOQ & Cost Estimate">BOQ & Cost Estimate</option>
-        </select>
-        <input id="upSpecs" type="text" placeholder="Details (e.g. East Facing, ₹22L BOQ)" class="px-3 py-2 rounded-xl border border-slate-300 text-sm bg-white"/>
-        <input id="upFile" type="file" accept="image/*" class="text-xs bg-white p-1.5 rounded-xl border border-slate-300"/>
-      </div>
-      <button onclick="addOwnerProject()" class="mt-3 bg-slate-900 text-amber-400 font-bold px-5 py-2 rounded-xl text-xs">
-        ➕ Publish Plan to Portfolio
-      </button>
     </div>
   </section>
 
@@ -277,19 +316,6 @@ website_html = """
     <div id="portfolioGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
   </section>
 
-  <!-- OWNER PIN MODAL -->
-  <div id="pinModal" class="hidden fixed inset-0 bg-slate-950/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xs w-full p-6 text-center shadow-2xl">
-      <h4 class="font-extrabold text-slate-900 text-base mb-1">Owner Studio Login</h4>
-      <p class="text-xs text-slate-500 mb-4">Enter Owner PIN to upload new plans (Default PIN: <b>2026</b>)</p>
-      <input id="pinInput" type="password" placeholder="Enter PIN" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-center font-bold mb-3"/>
-      <div class="flex gap-2">
-        <button onclick="toggleOwnerModal()" class="w-1/2 py-2 rounded-xl bg-slate-100 text-xs font-bold">Cancel</button>
-        <button onclick="verifyPin()" class="w-1/2 py-2 rounded-xl gold-gradient text-slate-950 text-xs font-extrabold">Unlock</button>
-      </div>
-    </div>
-  </div>
-
   <!-- FOOTER -->
   <footer class="bg-[#0b1324] text-slate-400 py-8 px-4 text-center text-xs border-t border-slate-800 mt-10">
     <p class="font-bold text-white text-sm mb-1">PATIL INFRA — DHARASHIV (OSMANABAD)</p>
@@ -297,7 +323,7 @@ website_html = """
   </footer>
 
   <script>
-    let projects = [
+    const defaultProjects = [
       {
         title: "30×50 East-Facing 2BHK Blueprint",
         type: "2D AutoCAD Plan",
@@ -318,20 +344,119 @@ website_html = """
       }
     ];
 
+    let isOwnerUnlocked = false;
+    let projects = [];
+
+    try {
+      const saved = localStorage.getItem('patil_infra_projects');
+      projects = saved ? JSON.parse(saved) : defaultProjects;
+    } catch (e) {
+      projects = defaultProjects;
+    }
+
+    function saveProjects() {
+      try {
+        localStorage.setItem('patil_infra_projects', JSON.stringify(projects));
+      } catch (e) {}
+    }
+
     function renderPortfolio() {
       const grid = document.getElementById('portfolioGrid');
-      grid.innerHTML = projects.map(p => `
+      grid.innerHTML = projects.map((p, idx) => `
         <div class="bg-white rounded-2xl overflow-hidden shadow-md border border-slate-200 flex flex-col justify-between">
           <div>
-            <img src="${p.img}" class="w-full h-44 object-cover" alt="${p.title}"/>
+            <img src="${p.img}" class="w-full h-48 object-cover" alt="${p.title}"/>
             <div class="p-4">
-              <span class="text-[10px] font-bold uppercase bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">${p.type}</span>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">${p.type}</span>
+                ${isOwnerUnlocked ? `<button onclick="deleteProject(${idx})" class="text-[11px] text-red-600 font-bold hover:underline">🗑️ Delete</button>` : ''}
+              </div>
               <h3 class="font-extrabold text-slate-900 text-base mt-2">${p.title}</h3>
               <p class="text-xs text-slate-500 mt-1">${p.specs}</p>
             </div>
           </div>
         </div>
       `).join('');
+    }
+
+    function deleteProject(index) {
+      projects.splice(index, 1);
+      saveProjects();
+      renderPortfolio();
+    }
+
+    function togglePinBar() {
+      if (isOwnerUnlocked) {
+        lockOwner();
+        return;
+      }
+      const bar = document.getElementById('pinBar');
+      const err = document.getElementById('pinError');
+      err.style.display = 'none';
+      if (bar.style.display === 'none') {
+        bar.style.display = 'block';
+        document.getElementById('pinInput').focus();
+      } else {
+        bar.style.display = 'none';
+      }
+    }
+
+    function verifyPin() {
+      const pin = document.getElementById('pinInput').value.trim();
+      const err = document.getElementById('pinError');
+      if (pin === '2026') {
+        isOwnerUnlocked = true;
+        document.getElementById('pinBar').style.display = 'none';
+        document.getElementById('ownerPanel').style.display = 'block';
+        document.getElementById('lockBtn').innerHTML = '🔓 <span class="hidden sm:inline">Unlocked</span>';
+        document.getElementById('pinInput').value = '';
+        err.style.display = 'none';
+        renderPortfolio();
+      } else {
+        err.style.display = 'block';
+      }
+    }
+
+    function lockOwner() {
+      isOwnerUnlocked = false;
+      document.getElementById('ownerPanel').style.display = 'none';
+      document.getElementById('pinBar').style.display = 'none';
+      document.getElementById('lockBtn').innerHTML = '🔒 <span class="hidden sm:inline">Owner</span>';
+      renderPortfolio();
+    }
+
+    function addOwnerProject() {
+      const title = document.getElementById('upTitle').value.trim();
+      const type = document.getElementById('upType').value;
+      const specs = document.getElementById('upSpecs').value.trim() || 'Dharashiv Consultancy Project';
+      const fileInput = document.getElementById('upFile');
+      const msg = document.getElementById('uploadSuccess');
+
+      if (!title) {
+        alert('भावा, आधी Project Title टाक!');
+        return;
+      }
+
+      const finalizeAdd = (imgUrl) => {
+        projects.unshift({ title, type, specs, img: imgUrl });
+        saveProjects();
+        renderPortfolio();
+        document.getElementById('upTitle').value = '';
+        document.getElementById('upSpecs').value = '';
+        fileInput.value = '';
+        msg.style.display = 'inline-block';
+        setTimeout(() => { msg.style.display = 'none'; }, 4000);
+      };
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          finalizeAdd(e.target.result);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        finalizeAdd("https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80");
+      }
     }
 
     function runCalc() {
@@ -363,49 +488,6 @@ website_html = """
       window.open(`https://wa.me/919000000000?text=${msg}`, '_blank');
     }
 
-    function toggleOwnerModal() {
-      document.getElementById('pinModal').classList.toggle('hidden');
-    }
-
-    function verifyPin() {
-      const pin = document.getElementById('pinInput').value;
-      if (pin === '2026') {
-        document.getElementById('ownerPanel').classList.remove('hidden');
-        document.getElementById('pinModal').classList.add('hidden');
-      } else {
-        alert('Incorrect Owner PIN!');
-      }
-    }
-
-    function lockOwner() {
-      document.getElementById('ownerPanel').classList.add('hidden');
-    }
-
-    function addOwnerProject() {
-      const title = document.getElementById('upTitle').value;
-      const type = document.getElementById('upType').value;
-      const specs = document.getElementById('upSpecs').value;
-      const fileInput = document.getElementById('upFile');
-      if (!title) return alert('Please enter project title!');
-
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          projects.unshift({ title, type, specs, img: e.target.result });
-          renderPortfolio();
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        projects.unshift({
-          title, type, specs,
-          img: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80"
-        });
-        renderPortfolio();
-      }
-      document.getElementById('upTitle').value = '';
-      document.getElementById('upSpecs').value = '';
-    }
-
     function setLang(lang) {
       const isMr = lang === 'mr';
       document.getElementById('btn-en').className = !isMr ? 'px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 transition' : 'px-2.5 py-1 rounded-md text-slate-300';
@@ -432,5 +514,5 @@ website_html = """
 </html>
 """
 
-# Render the full website smoothly inside Streamlit
-components.html(website_html, height=1950, scrolling=True)
+# Render inside Streamlit
+components.html(website_html, height=2100, scrolling=True)
