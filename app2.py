@@ -29,7 +29,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Complete Patil Infra Website (Secured Owner Studio + Direct WhatsApp Integration)
+# 3. Complete Patil Infra Website with Full Detailed WhatsApp Requirement Integration
 website_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +72,7 @@ website_html = """
         </div>
       </div>
 
-      <!-- RIGHT CONTROLS: SMALL MARATHI TOGGLE & DISCREET LOCK ICON -->
+      <!-- RIGHT CONTROLS -->
       <div class="flex items-center gap-2">
         <div class="bg-slate-800 p-0.5 rounded-lg border border-slate-700 flex text-xs font-bold">
           <button type="button" onclick="setLang('en')" id="btn-en" class="px-2.5 py-1 rounded-md bg-amber-500 text-slate-950 transition">EN</button>
@@ -84,7 +84,7 @@ website_html = """
       </div>
     </div>
 
-    <!-- INLINE OWNER AUTH BAR (NO PASSWORD HINTS SHOWN) -->
+    <!-- INLINE OWNER AUTH BAR -->
     <div id="pinBar" style="display: none;" class="bg-slate-900 border-t border-slate-800 px-4 py-3">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-2 text-xs text-slate-300 font-semibold">
@@ -104,7 +104,7 @@ website_html = """
     </div>
   </nav>
 
-  <!-- OWNER PRIVATE UPLOAD STUDIO (ONLY VISIBLE AFTER ENTERING SECRET KEY) -->
+  <!-- OWNER PRIVATE UPLOAD STUDIO -->
   <section id="ownerPanel" style="display: none;" class="bg-amber-50/90 border-b-2 border-amber-400 py-6 px-4 shadow-inner">
     <div class="max-w-7xl mx-auto">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -231,18 +231,18 @@ website_html = """
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Number of Floors</label>
               <select id="floors" onchange="runCalc()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold text-sm">
-                <option value="1">Ground Floor Only (G)</option>
-                <option value="2">G + 1 (Duplex / 2 Floors)</option>
-                <option value="3">G + 2 (3 Floors)</option>
+                <option value="Ground Floor Only (G)">Ground Floor Only (G)</option>
+                <option value="G + 1 (Duplex / 2 Floors)" selected>G + 1 (Duplex / 2 Floors)</option>
+                <option value="G + 2 (3 Floors)">G + 2 (3 Floors)</option>
               </select>
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Required Package</label>
               <select id="pkg" onchange="runCalc()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-semibold text-sm">
-                <option value="2d">Only 2D Floor Plan (₹4/sq.ft)</option>
-                <option value="est">Only Cost Estimate & BOQ (₹3/sq.ft)</option>
-                <option value="combo" selected>2D Plan + 3D + Full Estimate (₹9/sq.ft)</option>
-                <option value="bim">Complete Revit BIM + BOQ Package (₹12/sq.ft)</option>
+                <option value="Only 2D Floor Plan (₹4/sq.ft)">Only 2D Floor Plan (₹4/sq.ft)</option>
+                <option value="Only Cost Estimate & BOQ (₹3/sq.ft)">Only Cost Estimate & BOQ (₹3/sq.ft)</option>
+                <option value="2D Plan + 3D + Full Estimate (₹9/sq.ft)" selected>2D Plan + 3D + Full Estimate (₹9/sq.ft)</option>
+                <option value="Complete Revit BIM + BOQ Package (₹12/sq.ft)">Complete Revit BIM + BOQ Package (₹12/sq.ft)</option>
               </select>
             </div>
           </div>
@@ -402,7 +402,6 @@ website_html = """
       }
     }
 
-    // Check password silently without showing it anywhere on UI
     function verifyPin() {
       const pin = document.getElementById('pinInput').value.trim();
       const err = document.getElementById('pinError');
@@ -464,12 +463,21 @@ website_html = """
     function runCalc() {
       const w = parseFloat(document.getElementById('plotW').value) || 0;
       const l = parseFloat(document.getElementById('plotL').value) || 0;
-      const f = parseInt(document.getElementById('floors').value) || 1;
-      const pkg = document.getElementById('pkg').value;
+      const floorsEl = document.getElementById('floors');
+      let floorCount = 1;
+      if (floorsEl.value.includes('G + 1')) floorCount = 2;
+      else if (floorsEl.value.includes('G + 2')) floorCount = 3;
 
-      const builtUp = Math.round(w * l * 0.8 * f);
-      const rateMap = { '2d': 4, 'est': 3, 'combo': 9, 'bim': 12 };
-      const fee = builtUp * (rateMap[pkg] || 9);
+      const builtUp = Math.round(w * l * 0.8 * floorCount);
+      
+      const pkgVal = document.getElementById('pkg').value;
+      let rate = 9;
+      if (pkgVal.includes('₹4')) rate = 4;
+      else if (pkgVal.includes('₹3')) rate = 3;
+      else if (pkgVal.includes('₹9')) rate = 9;
+      else if (pkgVal.includes('₹12')) rate = 12;
+
+      const fee = builtUp * rate;
       const constCostLakhs = ((builtUp * 1650) / 100000).toFixed(2);
 
       document.getElementById('areaBadge').innerText = `Built-up: ${builtUp} Sq.Ft`;
@@ -483,20 +491,25 @@ website_html = """
     }
 
     function sendWhatsAppQuote() {
-      const name = document.getElementById('clientName').value.trim() || 'Client';
+      const name = document.getElementById('clientName').value.trim() || 'Valued Client';
       const clientMob = document.getElementById('clientPhone').value.trim() || 'Not Provided';
       const w = document.getElementById('plotW').value;
       const l = document.getElementById('plotL').value;
+      const floors = document.getElementById('floors').value;
+      const pkg = document.getElementById('pkg').value;
       const area = document.getElementById('areaBadge').innerText;
       const fee = document.getElementById('outFee').innerText;
       const constCost = document.getElementById('outConstCost').innerText;
 
       const text = `Hello *Patil Infra (Dharashiv)*!%0A%0A` +
-                   `*New Plan & Estimate Inquiry:*%0A` +
+                   `*New Client Requirement:*%0A` +
                    `👤 Name: ${name}%0A` +
-                   `📞 Client Mobile: ${clientMob}%0A` +
-                   `📐 Plot Size: ${w} x ${l} Ft (${area})%0A` +
-                   `💰 Consultancy Fee Quote: ${fee}%0A` +
+                   `📞 Mobile: ${clientMob}%0A` +
+                   `📐 Plot Size: ${w} x ${l} Ft%0A` +
+                   `🏢 Floors: ${floors}%0A` +
+                   `📦 Package: ${pkg}%0A` +
+                   `📐 Total Area: ${area}%0A` +
+                   `💰 Consultancy Fee: ${fee}%0A` +
                    `🏗️ Est. Construction Cost: ${constCost}`;
 
       window.open(`https://wa.me/919607721250?text=${text}`, '_blank');
